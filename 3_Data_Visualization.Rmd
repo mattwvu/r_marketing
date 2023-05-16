@@ -1,0 +1,217 @@
+---
+title: "3_Data_Visualization"
+author: "Matt Steele"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: cosmo
+---
+
+<br />
+
+---
+
+
+# Part 1: Introduction to GGPLOT2
+
+<br />
+
+---
+
+# Plot: Line Graph
+
+```{r}
+#| label: line graph
+#| eval: false
+
+# filter covid19 data frame to West Virginia
+
+covid19_wv <- covid19_df |> 
+  filter(State == "West Virginia") |> 
+  group_by(Date) |> 
+  summarise(Total = sum(Total))
+
+covid19_wv
+
+
+# set the parameters
+
+covid_wv.line <- ggplot(covid19_wv, aes(Date, Total))
+covid_wv.line
+
+# add the plot elements
+
+covid_wv.line +
+  geom_line()
+
+
+```
+
+<br />
+
+---
+
+## Add additional elements
+
+[Date Formats - strptime](https://rdrr.io/r/base/strptime.html)
+
+```{r}
+#| label: add elements to line graph
+#| eval: false
+
+# add color
+
+covid_wv.line +
+  geom_line(color = "skyblue", show.legend = FALSE)
+
+# add background elements
+
+covid_wv.line +
+  geom_line(color = "skyblue", show.legend = FALSE) +
+  theme_minimal()
+
+# add labels
+
+covid_wv.line +
+  geom_line(color = "skyblue", show.legend = FALSE) +
+  theme_classic() +
+  labs(
+    title = "COVID19 Count",
+    subtitle = "West Virginia | 2020",
+    x = NULL,
+    y = NULL
+  )
+
+# change date elements
+
+covid_wv.line +
+  geom_line(color = "skyblue", show.legend = FALSE, size = 2, alpha = .5) +
+  theme_classic() +
+  labs(
+    title = "COVID19 | West Virginia",
+    subtitle = "March to October 2020",
+    caption = "from cdc",
+    x = NULL,
+    y = NULL
+  ) +
+  scale_x_date(
+    date_breaks = "3 weeks",
+    date_labels = "%b %d"
+  )
+
+```
+
+
+# Histogram
+
+
+
+```{r}
+#| label: histogram
+#| eval: false
+
+# create an new data frame
+
+customer_df <- customer_replaceNA |> 
+  drop_na()
+
+# create a histogram
+
+customer.hist <- ggplot(customer_df, aes(Age))
+
+customer.hist +
+  geom_histogram()
+
+# bin and add some color
+
+customer.hist +
+  geom_histogram(bins = 30, color = "coral", fill = "#ffbf00", alpha = .5)
+
+# using the theme options
+
+customer.hist +
+  geom_histogram(bins = 30, color = "coral", fill = "#ffbf00", alpha = .5) +
+  theme_light() +
+  theme(axis.text = element_text(colour = "coral"), axis.title = element_text(color = "Navy")) +
+  labs(
+    y = NULL
+  ) 
+
+# add a reference line
+
+customer.hist +
+  geom_vline(xintercept = 55, color = "navy", size = 5) +
+  geom_histogram(bins = 30, color = "coral", fill = "#ffbf00", alpha = .75) +
+  theme_light() +
+  theme(axis.text = element_text(colour = "coral"), axis.title = element_text(color = "Navy")) +
+  labs(
+    y = NULL
+  )
+
+# separate by categorical data with facets
+
+customer.hist +
+  geom_histogram(bins = 30, color = "coral", fill = "#ffbf00", alpha = .75) +
+  theme_light() +
+  theme(axis.text = element_text(colour = "coral"), axis.title = element_text(color = "Navy")) +
+  labs(
+    y = NULL
+  ) + 
+  facet_wrap(facets = vars(Department_Name), ncol = 3)
+
+
+
+
+```
+
+<br />
+
+---
+
+# Bar Graph
+
+```{r}
+#| label: bar graph
+#| eval: false
+
+customer_afinn <- customer_sentiment |> 
+  group_by(word) |> 
+  summarise(n = sum(n), afinn_value = sum(afinn_value))
+
+
+arrange(customer_afinn, desc(afinn_value))
+
+
+customer_afinn <- customer_afinn |> 
+  filter(afinn_value <= -600 | afinn_value >= 6000) |> 
+  inner_join(bing)
+
+customer_afinn
+
+customer.bar <- ggplot(customer_afinn, aes(fct_reorder(word, afinn_value), afinn_value))
+
+customer.bar + 
+  geom_col(aes(fill = sentiment)) +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Paired")
+
+# difference between geom_bar and geom_col
+
+customer_df
+
+customer.bar2 <- ggplot(customer_df, aes(Department_Name))
+
+customer.bar2 +
+  geom_bar()
+
+customer.bar3 <- ggplot(customer_df, aes(Department_Name, Rating))
+
+customer.bar3 +
+  geom_col()
+
+```
+
+
+
+

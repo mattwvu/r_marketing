@@ -1,0 +1,938 @@
+---
+title: 'Part 2: Data Cleaning'
+author: "Matt Steele"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: cosmo
+---
+
+------------------------------------------------------------------------
+
+## Resources
+
+-   [Tidyverse Documentation](https://www.tidyverse.org/)
+
+-   [O'Reilly Learning
+    Platform](https://databases.lib.wvu.edu/connect/1540334373)
+
+    -   R for Data Science, 2nd Edition
+
+    -   R Programming for Statistics and Data Science
+    
+    -   Text Mining with R
+
+------------------------------------------------------------------------
+
+```{r}
+#| label: working directory
+#| include: false
+
+setwd("C:/Users/Matt/Documents/RWorkshop Development/workshop_r_for_marketing")
+
+
+```
+
+<br />
+
+# Part 1: About Tidyverse
+
+```{r}
+#| label: load tidyverse
+#| eval: false
+
+library(tidyverse)
+
+```
+
+Tidyverse is a collection of packages focused on data analysis and data
+visualizations that share an underlying design philosophy, grammar, and
+data structures.
+
+|                                                     |                                                                   |
+|-------------------------|-----------------------------------------------|
+| [tibble](https://tibble.tidyverse.org/)             | lighter and more user-friendly version of data frames             |
+| [tidyr](https://tidyr.tidyverse.org/)               | create tidy and meaningfully arranged data                        |
+| [readr](https://readr.tidyverse.org/)               | better importation of data into R                                 |
+| [ggplot](https://ggplot2.tidyverse.org/)            | data visualization functions                                      |
+| [dplyr](https://dplyr.tidyverse.org/)               | data manipulation tools                                           |
+| [lubridate](https://lubridate.tidyverse.org/)       | clean dates and times                                             |
+| [purr](https://purrr.tidyverse.org/)                | better functional programming                                     |
+| [forcats](https://forcats.tidyverse.org/index.html) | handle, clean, and manipulate categorical variables               |
+| [haven](https://haven.tidyverse.org/)               | read and write data formats from proprietary statistical pacakges |
+
+: Packages Includes in Tidyverse
+
+<br />
+
+------------------------------------------------------------------------
+
+# Part 2: Creating or Loading Data with Tidyverse
+
+------------------------------------------------------------------------
+
+<br />
+
+## Creating Data
+
+```{r}
+#| label: creating data frame with tibble
+#| eval: false
+
+starwars_tibble <- tibble(title, year, length.min, box.office.mil)
+starwars_tibble
+
+starwars.tibble <- as_tibble(starWars.data)
+starwars.tibble
+
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Loading Data
+
+------------------------------------------------------------------------
+
+<br />
+
+### Tibble function: read_csv
+
+this function allows you to read a csv file into a tibble data frame
+
+```{r}
+#| label: read_csv function
+#| eval: false
+
+customer_reviews_load <- read_csv("customer_reviews.csv")
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+### Tibble function: view
+
+tibble also provides a lighter way for you to view you entire data
+frame.
+
+```{r}
+#| label: view function
+#| eval: false
+
+view(customer_reviews)
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+### The Pipe Operator
+
+The pipe operator allows you to run commands or operation on a single
+object based on an order of operations
+
+-   let's say you want to see the **age**, **rating**, and **feedback**
+    of customer who shopped in the *dresses* department
+
+```{r}
+#| label: pipe operator example
+#| eval: false
+
+view(customer_reviews_load)
+
+customer_reviews_load |> # object we are working on
+  filter(Department_Name == "Dresses") |> # first operation
+  select(Clothing_ID, Age, Rating, Positive_Feedback_Count) # second operation
+
+# order of operations matter
+
+customer_reviews_load |> # object we are working on
+  select(Clothing_ID, Age, Rating, Positive_Feedback_Count) |> # first operation
+  filter(Department_Name == "Dresses") # second operation
+
+# why did this not work?
+
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+### Readr function: read_excel \| read_xlsx
+
+this function allows you to read Excel files in a tibble data frame
+
+```         
+-   this was data pulled from [MergentOnline]() industry search using the *Build files* option
+```
+
+```{r}
+#| label: read excel files
+#| eval: false
+
+
+online50_com <- readxl::read_excel("industry_sic73759902.xlsx", sheet = 1)
+online50_exe <- readxl::read_excel("industry_sic73759902.xlsx", sheet = 2)
+online50_fin <- readxl::read_excel("industry_sic73759902.xlsx", sheet = 3)
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+### Dplyr function: mutating join functions
+
+this function allows you to join multiple data frames together by a
+common variable(s)
+
+|            |                                                       |
+|------------|-------------------------------------------------------|
+| left_join  | if observations in (y) are in (x) then add (y) to (x) |
+| right_join | if observations in (x) are in (y) then add (x) to (y) |
+| full_join  | add all observations from (x) to (y)                  |
+| anti_join  | remove entries from data frame (y)                    |
+
+: mutating join functions
+
+<br />
+
+```{r}
+#| label: mutating joins
+#| eval: false 
+
+
+online50_com # company data
+online50_exe # executive data
+online50_fin # financial data
+
+online50_load <- online50_com |> # the data frame that will be joined to
+  left_join(online50_exe, by = c("DUNS_Number", "Company_Name"))
+
+view(online50_load)
+
+# so how do we add the third data frame?
+
+online50_load <- online50_load |> 
+  left_join(online50_fin, by = c("DUNS_Number", "Company_Name") )
+
+
+```
+
+------------------------------------------------------------------------
+
+<br />
+
+### Haven package: Read non-proprietary data files
+
+The package Haven allows you to read and export non-proprietary files
+for SPSS, SAS, and STATA
+
+```{r}
+#| read spss - haven
+#| eval: false
+
+
+demographics_load <- haven::read_sav("demographics.sav")
+
+```
+
+<br />
+
+#### Glimpse function
+
+like the str() function in base r, this allow you see the structure of
+your data but in a more compact manner
+
+```{r}
+#| label: glimpse function
+#| eval: false
+
+glimpse(demographics_load)
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+# Part 2: Cleaning Basics
+
+|                                                                   |                                                                |
+|-----------------------|-------------------------------------------------|
+| [filter](https://dplyr.tidyverse.org/reference/filter.html)       | retains or filters out observations based on variable criteria |
+| [select](https://dplyr.tidyverse.org/reference/select.html)       | retains or filters out variables                               |
+| [arrange](https://dplyr.tidyverse.org/reference/arrange.html)     | sorts variables                                                |
+| [mutate](https://dplyr.tidyverse.org/reference/mutate.html)       | change variables OR create new variables                       |
+| [group_by](https://dplyr.tidyverse.org/reference/group_by.html)   | group observations                                             |
+| [summarise](https://dplyr.tidyverse.org/reference/summarise.html) | get descriptive statistics about a variable                    |
+
+: Main Tidyverse Functions
+
+<br />
+
+------------------------------------------------------------------------
+
+<br />
+
+## Dplyr function: filter
+
+the filter function allows you to *filter* your data frame using a
+observations in a variable
+
+```{r}
+#| label: filter function
+#| eval: false
+
+customer_reviews_load
+
+# let's filter the data frame so we are seeing people who bought pants
+
+customer_pants <- customer_reviews_load |> 
+  filter(Class_Name == "Pants")
+
+customer_pants
+
+```
+
+<br />
+
+### Boolean operators
+
+boolean operators allows you to build criteria in your code
+
+|     |                       |
+|-----|-----------------------|
+| &   | AND                   |
+| \|  | OR                    |
+| ==  | EQUAL                 |
+| !=  | NOT EQUAL             |
+| \<  | LESS THAN             |
+| \>  | GREATER THAN          |
+| \<= | LESS THAN OR EQUAL    |
+| \>= | GREATER THAN OR EQUAL |
+
+: Boolean operators
+
+<br />
+
+```{r}
+#| label: filter with more than one criteria
+#| eval: false
+
+# let's filter the data frame for people who did not buy pants and are over 50 years old
+
+customer_pants50 <- customer_reviews_load |> 
+  filter(Class_Name != "Pants" & Age > 50)
+
+customer_pants50
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Dplyr function: select
+
+the select function allows you to *keep* or *discard* variables
+
+```{r}
+#| label: select function
+#| eval: false
+
+# let's just keep the numeric information
+
+customer_select <- customer_pants50 |> 
+  select(Clothing_ID, Age, Rating, Recommended_IND)
+
+customer_select
+
+# let's remove the division and department name variables from our data frame
+
+customer_notSelect <- customer_pants50 |> 
+  select(-Division_Name, -Department_Name)
+
+customer_notSelect
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Dplyr function: mutate
+
+the mutate function allows you to change variables OR create new
+variables based on the observations in the variables
+
+*NOTE: if you name your variable as an existing variable, it WILL overwrite the existing varaible. If you give it a new name, it will create a new variable
+
+```{r}
+#| label: mutate function
+#| eval: false
+
+demographics_load
+
+demographics_mutate <- demographics_load |> 
+  mutate(income_new = income/1000) |> 
+  relocate(income_new, .after = income)
+
+demographics_mutate
+
+# let's overwrite the old variable
+
+demographics_overwrite <- demographics_load |> 
+  mutate(income = income/1000)
+
+demographics_overwrite
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Dplyr function: arrange
+
+the arrange function allows you to sort variables
+
+```{r}
+#| label: arrange function
+#| eval: false
+
+# let's look in the customers review data frame and see what customers gave the highest rating
+
+customer_reviews_load |> 
+  arrange(desc(Rating))
+
+# you can add multiple criteria to your sort
+
+customer_reviews_load |> 
+  arrange(desc(Rating), Class_Name) |> 
+  select(Clothing_ID, Rating, Class_Name)
+
+```
+
+<br />
+
+---
+
+## Dplyr function: group_by & summarise
+
+the **group_by** function allows you to group common observations in a variable and **summarise** function allows you to get descriptive statistics about the groupings
+
+```{r}
+#| label: group_by and summarise
+#| eval: false
+
+customers_group <- customer_reviews_load |> 
+  group_by(Class_Name) |> 
+  summarise(n = n())
+
+customers_group
+
+# you can add as many summaries as you want
+
+customers_group <- customer_reviews_load |> 
+  group_by(Class_Name) |> 
+  summarise(n = n(), 
+            positive_tot = sum(Positive_Feedback_Count), 
+            positive_avg = (sum(Positive_Feedback_Count)/n), 
+            rating = mean(Rating))
+
+
+# you can also add multiple groups
+
+customers_group <- customer_reviews_load |> 
+  group_by(Class_Name, Recommended_IND) |> 
+  summarise(n = n(), 
+            positive_tot = sum(Positive_Feedback_Count), 
+            positive_avg = (sum(Positive_Feedback_Count)/n), 
+            rating = mean(Rating))
+
+```
+
+
+
+<br />
+
+------------------------------------------------------------------------
+
+# Part 4: Messy Data
+
+let's load a messy data frame
+
+```{r}
+#| label: load covid data
+#| eval: false
+
+covid19 <- read_csv("time_series_covid19_confirmed_US.csv")
+
+view(covid19)
+
+
+```
+
+<br />
+
+## Tidyr function: Pivot Data
+
+pivoting data allows you to either move variables into observations or
+observations into variables.
+
+```{r}
+#| label: pivot longer
+#| eval: false
+
+# let's turn the date variables into observations
+
+covid19_longer <- covid19 |> 
+  pivot_longer(!Combined_Key, names_to = "Date", values_to = "Total")
+
+
+covid19_longer
+
+```
+
+<br />
+
+
+
+------------------------------------------------------------------------
+
+## Tidyr function: Separate, Unite, and Gather
+
+these functions allow you to split up or combine variables in your data
+frame
+
+```{r}
+#| label: separate function
+#| eval: false
+
+covid19_separate <- covid19_longer |> 
+  separate_wider_delim(Combined_Key, 
+                       delim = ", ", 
+                       names = c("City", "State", "Country"),
+                       too_few = "align_start") |> 
+  select(-Country)
+
+covid19_separate
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Lubridate function: as_date
+
+the lubridate package allows you to clean and manipulate data variables
+
+```{r}
+#| label: change variable value to data
+#| eval: false
+
+glimpse(covid19_separate)
+
+covid19_date <- covid19_separate |> 
+  mutate(Date = lubridate::dmy(Date))
+
+covid19_date
+
+## we can even use this to create new variables
+
+covid19_month <- covid19_date |> 
+  mutate(Month = lubridate::month(Date, label = TRUE, abbr = FALSE)) |> 
+  relocate(Month, .after = Date)
+
+covid19_month
+
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Readr function: write_csv
+
+the write_csv function allows us to export data frames to a csv file
+once we are done cleaning it up or when we have done some analysis that
+we want to export
+
+```{r}
+#| label: exporting data
+#| eval: false
+
+# now that we have this date frame cleaned let's save it
+
+covid19_df <- covid19_month
+
+covid19_df
+
+# let's export the file
+
+write_csv(covid19_df, "covid19_time_series.csv")
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+## Haven function: Export as proprietary file
+
+we can even export files that we have been working on as proprietary
+files to work on in SPSS, SAS, or STATA
+
+```{r}
+#| label: export SPSS file
+#| eval: false
+
+# export to SPSS
+
+haven::write_sav(covid19_df, "covid19_time_series.sav")
+
+```
+
+<br />
+
+------------------------------------------------------------------------
+
+
+## Forcats function: as_factor
+
+This function allows you to redefine a variable value as a factor using the **mutate** function. For this example we are going redefine the recommend variable in the data frame we created when we grouped the customers.
+
+```{r}
+#| label: recode factors
+#| eval: false
+
+is.factor(customers_group)
+
+customers_factor <- customers_group |> 
+  mutate(Recommended_IND = as_factor(Recommended_IND))
+
+```
+
+This can be done with an data value using the as.___ functions from BASE R as well
+
+<br />
+
+---
+
+## Dyplr Function: recode
+
+we can rename the values of observations within a variable using the **mutate** function in combination with the **recode** or **recode_factor** functions
+
+```{r}
+#| label: recode observations
+#| eval: false
+
+# we can look at what levels a factor variable has, so long as r is interpreting it as a factor variable
+
+
+
+levels(customers_factor$Recommended_IND)
+
+# let's change the values from 1/0 to yes/no
+
+customers_recode <- customers_factor |> 
+  mutate(Recommended_IND = recode_factor(Recommended_IND, 
+                                         "1" = "Yes", 
+                                         "0" = "No"))
+
+
+customers_recode
+
+```
+
+
+## Tidyr Function: Pivot wider
+
+we can also do the inverse of pivot longer and widen our data
+
+```{r}
+#| label: pivot wider
+#| eval: false
+
+
+# let's create new variables from the recommend varaible
+
+customers_wide <- customers_recode |> 
+  pivot_wider(names_from = Recommended_IND, values_from = c(n:rating))
+
+
+customers_wide
+
+```
+
+
+<br />
+
+---
+
+## Dplyr function: rename
+
+the rename function allows you rename variables in your data frame
+
+```{r}
+#| label: rename
+#| eval: false
+
+glimpse(customers_wide)
+
+customers_rename <- customers_wide |> 
+  rename("Total Not Recommended" = n_No, "Total Recommended" = n_Yes)
+
+customers_rename
+
+
+```
+
+
+<br />
+
+---
+
+## Tidyr function: drop_na
+
+we can remove **all** missing data from data frames or variables using the drop_na function
+
+```{r}
+#| label: drop na
+#| eval: false
+
+customers_rename
+
+# we can see if are data frame has missing NA values using the is.na function.
+
+is.na(customers_rename)
+which(is.na(customers_rename))
+
+# because there are missing values we cannot calculate some descriptive statistics
+
+mean(customers_rename$`Total Not Recommended`)
+
+# we can drop all NA values from the data frame
+
+customers_dropNA <- customers_rename |> 
+  drop_na()
+
+customers_dropNA
+
+# we can also just drop NAs from a variable
+
+customers_dropNA_var <- customers_rename |> 
+  drop_na(`Total Not Recommended`)
+
+```
+
+
+<br />
+
+---
+
+## Tidyr function: replace_na
+
+you can also recode the NA values for observations with the replace_na function
+
+```{r}
+#| label: replace_na
+#| eval: false
+
+customer_reviews_load 
+
+# let's replace the NAs in the title of the review given with "none given"
+
+customer_replaceNA <- customer_reviews_load |> 
+  mutate(Title = replace_na(Title, "none given"))
+
+customer_replaceNA
+
+```
+
+<br />
+
+
+
+------------------------------------------------------------------------
+
+# Part 5: Text Mining 
+
+the package, **Tidytext** provides functions for performing text mining in r.
+
+```{r}
+#| label: install and load tidytext
+#| eval: false
+
+install.packages("tidytext")
+
+library(tidytext)
+
+
+```
+
+<br />
+
+```{r}
+#| label: load and filter customer data frame
+#| eval: false
+
+customer_reviews <- customer_reviews_load |> 
+  select(Clothing_ID, Title, Review_Text, Division_Name, Department_Name, Class_Name) |>
+  mutate(Title = replace_na(Title, "none given"))
+  
+
+customer_reviews
+
+
+```
+
+<br />
+
+---
+
+## Tidytext function: unnest tokens
+
+the unnest tokens will take text and tokenize them
+
+```{r}
+#| label: unnest tokens
+#| eval: false
+
+customer_unnest <- customer_reviews |> 
+  unnest_tokens(word, Review_Text) |> 
+  relocate(word, .after = Title)
+
+customer_unnest
+
+```
+
+<br />
+
+---
+
+## Dplyr function: anti-join
+
+the anti-join function can be used with the tidytext data frame stop_words to remove stop words from your data frame
+
+```{r}
+#| label: remove stop words with anti-join
+#| eval: false
+
+customer_stop <- customer_unnest |> 
+  anti_join(stop_words)
+
+customer_stop
+
+```
+
+<br />
+
+---
+
+## Dplyr function: count
+
+the count function from dplyr will count distinct instances within a variable. We can use this to see what words are appearing most frequently.
+
+```{r}
+#| label: count words
+#| eval: false
+
+customer_count <- customer_stop |> 
+  count(word, sort = TRUE)
+
+customer_count
+
+# this can be used with the group by function as well
+
+customer_countGP <- customer_stop |> 
+  group_by(Department_Name) |> 
+  count(word) |> 
+  arrange(Department_Name, desc(n))
+
+customer_countGP
+
+```
+
+
+<br />
+
+---
+
+
+## Sentiment Analysis
+
+tidytext contains a sentiment data frame called affin, bing, and nrc
+
+```{r}
+#| label: afinn
+#| eval: false
+
+afinn <- get_sentiments("afinn") # value
+bing <- get_sentiments("bing") # negative or positive
+nrc <- get_sentiments("nrc") # emotion
+
+nrc <- rename(nrc, emotion = sentiment)
+
+nrc
+
+```
+
+<br />
+
+---
+
+## Dplyr function: inner_join
+
+the inner_join function will allow you to append the sentiment data frame to your data frame
+
+```{r}
+#| label: join sentiments
+#| eval: false
+
+customer_sentiment <- customer_countGP |> 
+  inner_join(afinn) |> 
+  inner_join(bing) |> 
+  inner_join(nrc)  |> 
+  distinct(word, .keep_all = TRUE) |> 
+  mutate(afinn_value = value*n) |> 
+  relocate(afinn_value, .after = n)
+
+customer_sentiment
+
+```
+
+
+<br />
+
+---
+
+# Part 6: Data Explorer Package
+
+-   [DataExplorer package](http://boxuancui.github.io/DataExplorer/)
+
+```{r}
+#| label: DataExplorer
+#| eval: false
+
+install.packages("DataExplorer")
+library(DataExplorer)
+```
+
+```{r}
+#| label: create report
+#| eval: false
+
+create_report(customer_reviews_load)
+
+
+```
